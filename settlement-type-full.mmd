@@ -1,0 +1,122 @@
+classDiagram
+    %%核心接口定义
+    class SettlementType {
+        <<interface>>
+        +String getTypeCode()
+        +String getTypeName()
+        +boolean validate(ApplicationContext context)
+    }
+
+    class ProcessStep {
+        <<interface>>
+        +ProcessStepEnum getProcessStepEnum()
+        +StepResult execute(ApplicationContext context)
+    }
+
+    %% 入驻类型实现
+    class EnterpriseStore {
+        +String typeCode = "ENTERPRISE"
+        +String typeName = "企业店铺"
+        +boolean validate(ApplicationContext context)
+    }
+
+    class IndividualStore {
+    +String typeCode = "INDIVIDUAL"
+    +String typeName = "个体店铺"
+    +boolean validate(ApplicationContext context)
+        }
+
+    class CrossBorderStore {
+    +String typeCode = "CROSS_BORDER"
+    +String typeName = "跨境店铺"
+    +ProcessStepEnum getProcessStepEnum()
+    +boolean validate(ApplicationContext context)
+        }
+
+    %% 流程步骤实现
+    class RegisterStep {
+    +String stepCode = "REGISTER"
+    +String stepName = "注册步骤"
+    +ProcessStepEnum getProcessStepEnum()
+    +StepResult execute(ApplicationContext context)
+    }
+
+    class AuthStep {
+    +String stepCode = "AUTH"
+    +String stepName = "认证步骤"
+    +ProcessStepEnum getProcessStepEnum()
+    +StepResult execute(ApplicationContext context)
+    }
+
+    class ReviewStep {
+    +String stepCode = "REVIEW"
+    +String stepName = "审核步骤"
+    +ProcessStepEnum getProcessStepEnum()
+    +StepResult execute(ApplicationContext context)
+    }
+
+    class PaymentStep {
+    +String stepCode = "PAYMENT"
+    +String stepName = "支付步骤"
+    +ProcessStepEnum getProcessStepEnum()
+    +StepResult execute(ApplicationContext context)
+    }
+
+    %% 支持类
+    class ApplyInfoDO {
+    +String code
+    +String name
+    }
+
+    class StepResult {
+    -boolean success
+    -String message
+    +boolean isSuccess()
+    +String getMessage()
+        }
+
+    class ProcessFlow {
+    -List~ProcessStep~ steps
+    +void addStep(ProcessStep step)
+    +StepResult execute(ApplicationContext context)
+    }
+
+    class SettlementTypeFactory {
+    -Map~String, SettlementType~ typeMap
+    <<Map>>SettlementTypeEnum : List~ProcessStepEnum~
+    +SettlementTypeFactory(SettlementFlowProperties settlementFlowProperties,Map<ProcessStepEnum, ProcessStep> stepBeans)
+    +ProcessFlow getFlow(SettlementTypeEnum type)
+    }
+
+    class SettlementEngine {
+    -SettlementTypeFactory typeFactory
+    +SettlementResult process(ApplicationRequest request)
+    }
+
+    class StepBeanConfig {
+        -- 自动收集所有入驻步骤Bean配置类，并建立和ProcessStepEnum的映射Bean --
+        +Map<ProcessStepEnum, ProcessStep> stepBeans(List<ProcessStep> steps)
+    }
+
+    class SettlementFlowProperties {
+        --读取配置，映射到settlementType:List~ProcessStep~ --
+        +Map~SettlementTypeEnum, List~ProcessStepEnum>~ flowMapping
+    }
+
+    %% 关系定义
+    SettlementType <|.. EnterpriseStore
+    SettlementType <|.. IndividualStore
+    SettlementType <|.. CrossBorderStore
+
+    ProcessStep <|.. RegisterStep
+    ProcessStep <|.. AuthStep
+    ProcessStep <|.. ReviewStep
+    ProcessStep <|.. PaymentStep
+
+    SettlementType --> ProcessFlow : 拥有
+    ProcessFlow --> ProcessStep : 包含
+    SettlementEngine --> SettlementTypeFactory : 依赖
+    SettlementEngine --> ProcessFlow
+
+    SettlementTypeFactory --> StepBeanConfig
+    SettlementTypeFactory --> SettlementFlowProperties

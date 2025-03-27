@@ -1,0 +1,14 @@
+# 入驻类型与入驻流程枚举映射
+settlement:
+  flowMapping:
+    ENTERPRISE:
+      - REGISTER
+      - ENTERPRISE_AUTH
+      - REVIEW
+    INDIVIDUAL:
+      - REGISTER
+      - INDIVIDUAL_AUTH
+      - REVIEW
+    CROSS_BORDER:
+      - REGISTER
+      - REVIEW
